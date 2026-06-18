@@ -1,4 +1,62 @@
-# AGENTS.md
+# Repository Guidelines
+
+## Project Structure & Module Organization
+
+This is a Next.js 15 App Router application. Routes, layouts, and API handlers live under `app/`; groups such as `app/(auth)/` organize pages without changing URLs. Shared React components belong in `components/`, with shadcn primitives in `components/ui/`. Put reusable hooks in `hooks/`, client and authentication helpers in `lib/`, and server-only code in `server/`. Database schemas are under `server/db/schema/`, generated migrations in `drizzle/`, and static assets in `public/`.
+Core Rules
+Use TypeScript everywhere.
+Prefer Server Components by default.
+Use Client Components only when state, effects, browser APIs, or interactivity are needed.
+Prefer Server Actions for form mutations.
+Use API routes only for webhooks, external clients, auth callbacks, file uploads, streaming, or public HTTP endpoints.
+
+Keep business logic out of React components.
+
+Preferred architecture:
+
+Read:
+Page → Service → Query → Database
+
+Mutation:
+Form → Server Action → Service → Query → Database
+
+Webhook:
+API Route → Service → Query → Database
+
+AI/External Integrations:
+API Route → Service → Queries/APIs
+
+Keep database access inside `server/db/queries` and business workflows inside `server/services`.
+
+Do not introduce new libraries without explaining why.
+Do not rewrite unrelated files.
+After meaningful changes, run typecheck/build.
+
+## Build, Test, and Development Commands
+
+- `npm install` installs the locked dependencies from `package-lock.json`.
+- `docker compose up -d postgres` starts the local PostgreSQL 16 service.
+- `npm run dev` starts the Turbopack development server at `http://localhost:3000`.
+- `npm run lint` runs the Next.js ESLint rules and TypeScript-specific checks.
+- `npm run build` creates a production build and catches type or bundling failures.
+- `npm start` serves the completed production build.
+- `npm run db:generate`, `npm run db:migrate`, and `npm run db:studio` manage Drizzle migrations and inspect the database.
+
+## Coding Style & Naming Conventions
+
+Keep TypeScript strict and prefer the `@/` alias for root imports. Follow the frontend style: two-space indentation, double quotes, and functional components. Use kebab-case filenames (`mode-toggle.tsx`), PascalCase components, camelCase functions and variables, and `use-*.ts` for hooks. Follow Next.js names such as `page.tsx`, `layout.tsx`, and `route.ts`. ESLint is authoritative where existing files differ.
+
+## Testing Guidelines
+
+No automated test framework or coverage threshold is configured. Run `npm run lint` and `npm run build`, then manually exercise affected routes and database operations. When adding tests, colocate `*.test.ts` or `*.test.tsx` files near the implementation and add the test script and framework configuration to `package.json`.
+
+## Commit & Pull Request Guidelines
+
+History uses Conventional Commit-style subjects, for example `chore: nextjs + drizzle + auth setup`. Use concise, imperative subjects such as `feat: add calendar connection`. Pull requests should explain the change, list validation, link relevant issues, and include screenshots for UI changes. Call out migrations, environment variables, or deployment steps.
+
+## Security & Configuration
+
+Keep secrets in ignored `.env` files; never commit credentials or OAuth keys. `DATABASE_URL` is required by the database client and Drizzle tooling. Review generated SQL in `drizzle/` before applying migrations, especially against shared databases.
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
@@ -60,4 +118,3 @@ For multi-step tasks, state a brief plan:
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
----

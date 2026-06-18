@@ -1,6 +1,7 @@
 
 import { redirect } from "next/navigation"
 import {getCurrentSession} from "@/lib/betterauth/session"
+import { ModeToggle } from "@/components/mode-toggle"
 
 const Dashboard = async () => {
   const session = await getCurrentSession()
@@ -9,7 +10,9 @@ const Dashboard = async () => {
   }
 
   return (
-    <div>Dashboard</div>
+    <div>Dashboard
+        <ModeToggle/>
+    </div>
   )
 }
 
