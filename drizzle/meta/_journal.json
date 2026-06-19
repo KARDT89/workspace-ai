@@ -15,6 +15,13 @@
       "when": 1781815085651,
       "tag": "0001_cheerful_wolfpack",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781879787039,
+      "tag": "0002_illegal_zzzax",
+      "breakpoints": true
     }
   ]
 }
