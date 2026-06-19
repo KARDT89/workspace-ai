@@ -37,27 +37,29 @@ function toInboxMessage(
   };
 }
 
-export async function listMessages(
-  userId: string,
-  opts: { limit?: number; offset?: number } = {}
-): Promise<InboxMessage[]> {
-  const tenant = getTenant(userId);
-  const { limit = 50, offset = 0 } = opts;
-
-  const entities = await tenant.gmail.db.messages.list({ limit, offset });
- 
-  if (!entities?.length) return [];
-  // Dedupe by threadId — keep first occurrence (newest first from Corsair)
+function sortAndDedup<T extends { entity_id: string; data?: Record<string, unknown> | null }>(
+  entities: T[]
+): T[] {
+  const sorted = [...entities].sort((a, b) => {
+    const dateA = parseInt((a.data?.internalDate as string) ?? "0", 10);
+    const dateB = parseInt((b.data?.internalDate as string) ?? "0", 10);
+    return dateB - dateA;
+  });
   const seen = new Set<string>();
-  const deduped: typeof entities = [];
-  for (const e of entities) {
+  const deduped: T[] = [];
+  for (const e of sorted) {
     const tid = (e.data?.threadId as string) ?? e.entity_id;
     if (!seen.has(tid)) {
       seen.add(tid);
       deduped.push(e);
     }
   }
+  return deduped;
+}
 
+async function enrichWithPriorities(
+  deduped: { entity_id: string; data?: Record<string, unknown> | null }[]
+): Promise<InboxMessage[]> {
   const entityIds = deduped.map((e) => e.entity_id);
   const priorities = entityIds.length
     ? await db
@@ -66,10 +68,47 @@ export async function listMessages(
         .where(inArray(emailPriorities.messageEntityId, entityIds))
     : [];
   const priorityMap = new Map(priorities.map((p) => [p.messageEntityId, p]));
-
   return deduped.map((e) =>
     toInboxMessage(e as { entity_id: string; data: Record<string, unknown> }, priorityMap)
   );
+}
+
+export async function listMessages(
+  userId: string,
+  opts: { limit?: number; offset?: number } = {}
+): Promise<InboxMessage[]> {
+  const tenant = getTenant(userId);
+  const { limit = 50, offset = 0 } = opts;
+
+  const entities = await tenant.gmail.db.messages.list({ limit, offset });
+  if (!entities?.length) return [];
+
+  const deduped = sortAndDedup(entities);
+  return enrichWithPriorities(deduped);
+}
+
+export async function listSent(userId: string): Promise<InboxMessage[]> {
+  const tenant = getTenant(userId);
+  const entities = await tenant.gmail.db.messages.list({ limit: 200 });
+  if (!entities?.length) return [];
+
+  const sent = entities.filter((e) =>
+    (e.data?.labelIds as string[] | undefined)?.includes("SENT")
+  );
+  const deduped = sortAndDedup(sent);
+  return enrichWithPriorities(deduped);
+}
+
+export async function listDrafts(userId: string): Promise<InboxMessage[]> {
+  const tenant = getTenant(userId);
+  const entities = await tenant.gmail.db.messages.list({ limit: 200 });
+  if (!entities?.length) return [];
+
+  const drafts = entities.filter((e) =>
+    (e.data?.labelIds as string[] | undefined)?.includes("DRAFT")
+  );
+  const deduped = sortAndDedup(drafts);
+  return enrichWithPriorities(deduped);
 }
 
 export async function searchMessages(

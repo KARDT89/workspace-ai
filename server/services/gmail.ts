@@ -1,6 +1,6 @@
 import { getTenant } from "@/server/lib/tenant";
 import { buildRawMessage } from "@/server/lib/email-encoding";
-import { listMessages, searchMessages } from "@/server/db/queries/gmail";
+import { listMessages, listSent, listDrafts, searchMessages } from "@/server/db/queries/gmail";
 
 export type { InboxMessage } from "@/server/db/queries/gmail";
 
@@ -149,22 +149,22 @@ export async function markRead(userId: string, messageId: string, read: boolean)
   });
 }
 
-export async function syncInbox(userId: string) {
+async function syncLabel(userId: string, labelId: "INBOX" | "SENT" | "DRAFT") {
   const tenant = getTenant(userId);
 
   const list = await tenant.gmail.api.messages.list({
     maxResults: 50,
-    labelIds: ["INBOX"],
+    labelIds: [labelId],
   });
   const messages = list.messages ?? [];
 
   await Promise.all(
     messages.map(async (msg) => {
       if (!msg.id) return;
+      // No metadataHeaders restriction — get all headers so Subject is always present
       const full = await tenant.gmail.api.messages.get({
         id: msg.id,
         format: "metadata",
-        metadataHeaders: ["From", "To", "Subject"],
       });
       const headers: { name?: string; value?: string }[] =
         (full.payload as { headers?: { name?: string; value?: string }[] })?.headers ?? [];
@@ -176,9 +176,7 @@ export async function syncInbox(userId: string) {
         threadId: full.threadId,
         labelIds: full.labelIds,
         snippet: full.snippet,
-        internalDate: full.internalDate != null
-          ? new Date(full.internalDate as string | number | Date).getTime().toString()
-          : undefined,
+        internalDate: full.internalDate != null ? String(full.internalDate) : undefined,
         from: h("from"),
         to: h("to"),
         subject: h("subject"),
@@ -187,4 +185,18 @@ export async function syncInbox(userId: string) {
   );
 
   return { synced: messages.length };
+}
+
+export async function syncInbox(userId: string) {
+  return syncLabel(userId, "INBOX");
+}
+
+export async function getSent(userId: string) {
+  await syncLabel(userId, "SENT");
+  return listSent(userId);
+}
+
+export async function getDraftsList(userId: string) {
+  await syncLabel(userId, "DRAFT");
+  return listDrafts(userId);
 }

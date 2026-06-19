@@ -149,8 +149,14 @@ export function ThreadList({ selectedThreadId, onSelectThread, onCompose }: Prop
   const isSearching =
     searchQuery.trim().length > 0 || Object.keys(searchFilters).length > 0;
 
+  const FETCH_URL: Record<TabId, string> = {
+    inbox: "/api/gmail/messages",
+    sent: "/api/gmail/sent",
+    drafts: "/api/gmail/drafts/list",
+  };
+
   const { data: rawMessages = [], isLoading } = useQuery<InboxMessage[]>({
-    queryKey: isSearching ? ["inbox-search", searchQuery, searchFilters] : ["inbox"],
+    queryKey: isSearching ? ["inbox-search", searchQuery, searchFilters] : [activeTab],
     queryFn: () => {
       if (isSearching) {
         const params = new URLSearchParams();
@@ -159,9 +165,8 @@ export function ThreadList({ selectedThreadId, onSelectThread, onCompose }: Prop
         if (searchFilters.subject) params.set("subject", searchFilters.subject);
         return fetch(`/api/gmail/messages/search?${params}`).then((r) => r.json());
       }
-      return fetch("/api/gmail/messages").then((r) => r.json());
+      return fetch(FETCH_URL[activeTab]).then((r) => r.json());
     },
-    refetchInterval: isSearching ? undefined : 60_000,
   });
 
   // SSE — server pushes "inbox:updated" when a new email arrives via webhook
@@ -194,13 +199,8 @@ export function ThreadList({ selectedThreadId, onSelectThread, onCompose }: Prop
     ).then(() => qc.invalidateQueries({ queryKey: ["inbox"] }));
   }, [rawMessages, isSearching, qc]);
 
-  // Client-side tab filter (search results skip tab filtering)
-  const displayMessages = useMemo(() => {
-    if (isSearching) return rawMessages;
-    if (activeTab === "sent") return rawMessages.filter((m) => m.labelIds.includes("SENT"));
-    if (activeTab === "drafts") return rawMessages.filter((m) => m.labelIds.includes("DRAFT"));
-    return rawMessages;
-  }, [rawMessages, activeTab, isSearching]);
+  // Server returns the correct set for each tab — no client-side label filtering needed
+  const displayMessages = useMemo(() => rawMessages, [rawMessages]);
 
   const unreadCount = useMemo(
     () => rawMessages.filter((m) => m.unread).length,

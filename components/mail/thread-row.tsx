@@ -13,6 +13,7 @@ function formatDate(internalDate: string): string {
   if (!internalDate) return "";
   const ms = Number(internalDate);
   const d = isNaN(ms) ? new Date(internalDate) : new Date(ms);
+  if (isNaN(d.getTime())) return "";
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
 
