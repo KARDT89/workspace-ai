@@ -76,21 +76,27 @@ Tracks every step from `planv1.md` against actual repo state.
 
 ---
 
-## Phase 3 — Calendar Core
+## Phase 3 — Calendar Core ✅
 
 | Step | File(s) | Status | Notes |
 |------|---------|--------|-------|
-| 14a | `server/db/queries/calendar.ts` | ⬜ | |
-| 14b | `server/services/calendar.ts` | ⬜ | |
-| 15a | `app/api/calendar/events/route.ts` | ⬜ | |
-| 15b | `app/api/calendar/events/search/route.ts` | ⬜ | |
-| 15c | `app/api/calendar/sync/route.ts` | ⬜ | |
-| 16a | `components/calendar/week-view.tsx` | ⬜ | |
-| 16b | `components/calendar/event-block.tsx` | ⬜ | |
-| 16c | `components/calendar/event-detail-popover.tsx` | ⬜ | |
-| 17 | `components/calendar/create-event-modal.tsx` | ⬜ | |
+| 14a | `server/db/queries/calendar.ts` | ✅ | `searchEvents` (DB text search); `toCalendarEvent` shared helper |
+| 14b | `server/services/calendar.ts` | ✅ | `getWeekEvents`, `createEvent`, `syncWeek`, re-exports `searchEvents` |
+| 15a | `app/api/calendar/events/route.ts` | ✅ | GET (week) + POST (create) |
+| 15b | `app/api/calendar/events/search/route.ts` | ✅ | GET ?q= |
+| 15c | `app/api/calendar/sync/route.ts` | ✅ | POST |
+| 16a | `components/calendar/week-view.tsx` | ✅ | TanStack Query, `[`/`]`/`t`/`n` keys, scroll to 7am, overlap columns |
+| 16b | `components/calendar/event-block.tsx` | ✅ | Absolute positioning, Google colorId mapping, popover trigger |
+| 16c | `components/calendar/event-detail-popover.tsx` | ✅ | Time, location, Meet link, attendees |
+| 17 | `components/calendar/create-event-modal.tsx` | ✅ | Date/time/attendees/sendInvite, invalidates query on success |
 
-**Phase 3 gate:** Week view → event detail → create event → attendee receives invite
+**Deviations from plan:**
+- DB layer has no `start`/`end` datetime filter — week events fetched via `googlecalendar.api.events.getMany` (API), not DB
+- `listEvents` query function not needed — service calls API directly for time-range queries; DB layer only used for text search
+- Removed pre-existing broken `app/api/gmail/watch/route.ts` (used non-existent `gmail.api.watch` endpoint — blocked build)
+- Fixed pre-existing bug in `components/mail/reply-toolbar.tsx` (`TooltipTrigger render=` → `asChild`)
+
+**Phase 3 gate:** Week view → event detail → create event → attendee receives invite — **Ready to test**
 
 ---
 
@@ -192,3 +198,7 @@ Tracks every step from `planv1.md` against actual repo state.
 | 2026-06-19 | Phase 2 | All 16 steps + mail-view orchestrator completed | Build passes clean (`npm run build` green after `rm -rf .next`) |
 | 2026-06-19 | Phase 2 | `messages/[id]` uses threadId not entityId; calls `threads.get` API | Different from plan which said `messages.get` |
 | 2026-06-19 | Phase 2 | Corsair DB `.list()` and `.search()` use `{ data: {...} }` for JSONB field filters | Confirmed from ORM type inspection |
+| 2026-06-20 | Phase 3 | All 9 steps completed | Build passes clean (`npm run build` green) |
+| 2026-06-20 | Phase 3 | No DB date-range filter on events → week events use `googlecalendar.api.events.getMany` | DB layer only for text search |
+| 2026-06-20 | Phase 3 | Removed `app/api/gmail/watch/route.ts` — used non-existent `gmail.api.watch` | Was blocking build |
+| 2026-06-20 | Phase 3 | Fixed `reply-toolbar.tsx` `TooltipTrigger render=` prop → `asChild` pattern | Pre-existing bug, was blocking build |
