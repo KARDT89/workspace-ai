@@ -100,17 +100,22 @@ Tracks every step from `planv1.md` against actual repo state.
 
 ---
 
-## Phase 4 — Real-time & AI
+## Phase 4 — Real-time & AI ✅
 
 | Step | File(s) | Status | Notes |
 |------|---------|--------|-------|
-| 18 | Update `app/api/webhooks/route.ts` — wire to prioritization | ⬜ | Depends on Step 7 |
-| 19a | `server/services/ai.ts` | ⬜ | |
-| 19b | `app/api/ai/prioritize/route.ts` | ⬜ | |
-| 20 | Backfill inbox prioritization on first load | ⬜ | |
-| 21 | Update `thread-row.tsx` with priority badges | ⬜ | Depends on Step 11b |
+| 18 | Update `app/api/webhooks/route.ts` — wire to prioritization | ✅ | Fire-and-forget; decodes Pub/Sub base64, looks up user by email, prioritizes new messages |
+| 19a | `server/services/ai.ts` | ✅ | OpenRouter `google/gemini-flash-1.5-8b`; upserts into `email_priorities` on conflict |
+| 19b | `app/api/ai/prioritize/route.ts` | ✅ | POST; single-message classification |
+| 20 | Backfill inbox prioritization on first load | ✅ | `useEffect` in `thread-list.tsx`; fires once per session via `backfillFired` ref; invalidates `["inbox"]` after all complete |
+| 21 | Update `thread-row.tsx` with priority badges | ✅ | Already implemented in Phase 2 (`PriorityBadge` component, amber high / muted low) |
 
-**Phase 4 gate:** Send self email → appears < 5s → priority badge shows
+**Deviations from plan:**
+- Step 21 was already done in Phase 2 — `thread-row.tsx` had `PriorityBadge` wired up
+- Skeleton badges while pending (plan Step 20) skipped — query invalidates after batch completes, causing a single re-render
+- Webhook doesn't block response — `triggerPrioritizationFromWebhook` is fully fire-and-forget
+
+**Phase 4 gate:** Send self email → appears < 5s → priority badge shows — **Ready to test**
 
 ---
 
@@ -202,3 +207,5 @@ Tracks every step from `planv1.md` against actual repo state.
 | 2026-06-20 | Phase 3 | No DB date-range filter on events → week events use `googlecalendar.api.events.getMany` | DB layer only for text search |
 | 2026-06-20 | Phase 3 | Removed `app/api/gmail/watch/route.ts` — used non-existent `gmail.api.watch` | Was blocking build |
 | 2026-06-20 | Phase 3 | Fixed `reply-toolbar.tsx` `TooltipTrigger render=` prop → `asChild` pattern | Pre-existing bug, was blocking build |
+| 2026-06-20 | Phase 4 | All 5 steps completed | Build passes clean |
+| 2026-06-20 | Phase 4 | Step 21 already done in Phase 2; skeleton badges skipped | Single invalidation after batch |

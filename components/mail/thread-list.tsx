@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState, useMemo, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useRef, useState, useMemo, useCallback, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { motion } from "framer-motion";
 import { PencilSimple, Mailbox } from "@phosphor-icons/react";
@@ -139,6 +139,8 @@ type Props = {
 
 export function ThreadList({ selectedThreadId, onSelectThread, onCompose }: Props) {
   const parentRef = useRef<HTMLDivElement>(null);
+  const backfillFired = useRef(false);
+  const qc = useQueryClient();
 
   const [activeTab, setActiveTab] = useState<TabId>("inbox");
   const [searchQuery, setSearchQuery] = useState("");
@@ -161,6 +163,29 @@ export function ThreadList({ selectedThreadId, onSelectThread, onCompose }: Prop
     },
     refetchInterval: isSearching ? undefined : 30_000,
   });
+
+  // Backfill priorities for messages that have never been classified
+  useEffect(() => {
+    if (backfillFired.current || isSearching || !rawMessages.length) return;
+    const missing = rawMessages.filter((m) => !m.priority).slice(0, 50);
+    if (!missing.length) { backfillFired.current = true; return; }
+    backfillFired.current = true;
+
+    Promise.all(
+      missing.map((m) =>
+        fetch("/api/ai/prioritize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messageEntityId: m.entityId,
+            subject: m.subject,
+            snippet: m.snippet,
+            from: m.from,
+          }),
+        }).catch(() => null)
+      )
+    ).then(() => qc.invalidateQueries({ queryKey: ["inbox"] }));
+  }, [rawMessages, isSearching, qc]);
 
   // Client-side tab filter (search results skip tab filtering)
   const displayMessages = useMemo(() => {
