@@ -85,7 +85,7 @@
 
 .dark {
   /* PRD palette: near-black bg, #3b82f6 accent, #f0f0f0 text */
-  --background: oklch(0.09 0 0);
+  --background: oklch(0.065 0 0);
   --foreground: oklch(0.95 0 0);
   --card: oklch(0.12 0 0);
   --card-foreground: oklch(0.95 0 0);
@@ -116,6 +116,47 @@
   --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(0.22 0 0);
   --sidebar-ring: oklch(0.623 0.214 259.5);
+
+  /* ── Extended design tokens ── */
+  --primary-glow: oklch(0.623 0.214 259.5 / 0.15);
+  --amber: oklch(0.77 0.157 70.5);
+  --amber-bg: oklch(0.77 0.157 70.5 / 0.15);
+  --success: oklch(0.725 0.178 147.2);
+  --success-bg: oklch(0.725 0.178 147.2 / 0.12);
+  --thread-hover: oklch(0.14 0 0);
+  --thread-selected: oklch(0.16 0 0);
+  --status-bar: oklch(0.085 0 0);
+}
+
+@keyframes shimmer-sweep {
+  from { background-position: -300% center; }
+  to   { background-position:  300% center; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+@keyframes float-up {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* Aurora auth background blobs */
+@keyframes aurora-1 {
+  0%, 100% { transform: translate(0%,   0%)   scale(1);    opacity: 0.7; }
+  30%       { transform: translate(8%,  -12%)  scale(1.08); opacity: 0.5; }
+  60%       { transform: translate(-6%, 10%)   scale(0.94); opacity: 0.8; }
+}
+@keyframes aurora-2 {
+  0%, 100% { transform: translate(0%,  0%)   scale(1);    opacity: 0.55; }
+  40%       { transform: translate(-10%, 8%)  scale(1.12); opacity: 0.4; }
+  70%       { transform: translate(7%, -9%)   scale(0.9);  opacity: 0.65; }
+}
+@keyframes aurora-3 {
+  0%, 100% { transform: translate(0%,  0%)   scale(1);    opacity: 0.45; }
+  50%       { transform: translate(12%, 6%)   scale(1.15); opacity: 0.65; }
 }
 
 @layer base {

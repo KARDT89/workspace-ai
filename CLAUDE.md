@@ -3,13 +3,16 @@
 ## Project Structure & Module Organization
 
 This is a Next.js 15 App Router application. Routes, layouts, and API handlers live under `app/`; groups such as `app/(auth)/` organize pages without changing URLs. Shared React components belong in `components/`, with shadcn primitives in `components/ui/`. Put reusable hooks in `hooks/`, client and authentication helpers in `lib/`, and server-only code in `server/`. Database schemas are under `server/db/schema/`, generated migrations in `drizzle/`, and static assets in `public/`.
-Core Rules
+
+VERY IMPORTANT Core Rules
 Use TypeScript everywhere.
 NEVER change migrations of drizzle. always change schema instead.
 Prefer Server Components by default.
 Use Client Components only when state, effects, browser APIs, or interactivity are needed.
 Prefer Server Actions for form mutations.
 Use API routes only for webhooks, external clients, auth callbacks, file uploads, streaming, or public HTTP endpoints.
+
+ALWAYS prefer shadcn ui compoments over manually making. All the shadcn components are in components/ui folder
 
 Keep business logic out of React components.
 

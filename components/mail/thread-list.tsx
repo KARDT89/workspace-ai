@@ -21,7 +21,7 @@ export function ThreadList({ selectedThreadId, onSelectThread, onCompose }: Prop
   });
 
   return (
-    <div className="w-80 flex-shrink-0 border-r border-border flex flex-col h-full">
+    <div className="w-80 shrink-0 border-r border-border flex flex-col h-full">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <h2 className="text-sm font-semibold">Inbox</h2>
         <Button

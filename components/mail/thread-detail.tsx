@@ -28,7 +28,7 @@ function MessageHeader({ msg }: { msg: ThreadMessage }) {
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-primary/20 text-primary text-xs font-semibold flex items-center justify-center flex-shrink-0">
+            <div className="w-7 h-7 rounded-full bg-primary/20 text-primary text-xs font-semibold flex items-center justify-center shrink-0">
               {(sender.name || sender.email).charAt(0).toUpperCase()}
             </div>
             <div>
@@ -77,7 +77,7 @@ function MessageBody({ msg }: { msg: ThreadMessage }) {
     return (
       <iframe
         ref={iframeRef}
-        className="w-full border-0 min-h-[100px]"
+        className="w-full border-0 min-h-25"
         sandbox="allow-same-origin"
         title="Email body"
       />
@@ -150,7 +150,7 @@ export function ThreadDetail({ threadId, userEmail, onReply }: Props) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Subject header */}
-      <div className="px-6 py-4 border-b border-border flex-shrink-0">
+      <div className="px-6 py-4 border-b border-border shrink-0">
         <h1 className="text-base font-semibold">{thread.messages[0]?.subject || "(no subject)"}</h1>
       </div>
 
@@ -178,7 +178,7 @@ export function ThreadDetail({ threadId, userEmail, onReply }: Props) {
 
       {/* Reply toolbar */}
       {latestMessage && (
-        <div className="flex-shrink-0 border-t border-border px-6 py-3 flex items-center gap-2">
+        <div className="shrink-0 border-t border-border px-6 py-3 flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"

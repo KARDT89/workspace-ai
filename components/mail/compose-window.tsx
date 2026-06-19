@@ -162,9 +162,9 @@ export function ComposeWindow({ userEmail, replyContext, onClose }: Props) {
       {!minimized && (
         <>
           {/* Fields */}
-          <div className="flex flex-col border-b border-border/50 flex-shrink-0">
+          <div className="flex flex-col border-b border-border/50 shrink-0">
             <div className="flex items-center border-b border-border/30 px-4">
-              <span className="text-xs text-muted-foreground w-8 flex-shrink-0">To</span>
+              <span className="text-xs text-muted-foreground w-8 shrink-0">To</span>
               <Input
                 className="border-0 shadow-none focus-visible:ring-0 text-sm h-9 px-2"
                 placeholder="recipients@example.com"
@@ -173,7 +173,7 @@ export function ComposeWindow({ userEmail, replyContext, onClose }: Props) {
               />
             </div>
             <div className="flex items-center px-4">
-              <span className="text-xs text-muted-foreground w-8 flex-shrink-0">Sub</span>
+              <span className="text-xs text-muted-foreground w-8 shrink-0">Sub</span>
               <Input
                 className="border-0 shadow-none focus-visible:ring-0 text-sm h-9 px-2"
                 placeholder="Subject"
@@ -193,7 +193,7 @@ export function ComposeWindow({ userEmail, replyContext, onClose }: Props) {
           />
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-4 py-2.5 border-t border-border flex-shrink-0">
+          <div className="flex items-center justify-between px-4 py-2.5 border-t border-border shrink-0">
             <span className="text-[11px] text-muted-foreground">
               {userEmail}
             </span>
