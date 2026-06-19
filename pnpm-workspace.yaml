@@ -1,0 +1,13 @@
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@base-ui/react@1.6.0'
+  - '@base-ui/utils@0.3.1'
+  - '@hugeicons/core-free-icons@4.2.1'
+  - '@openai/agents-core@0.11.7'
+  - '@openai/agents-openai@0.11.7'
+  - '@openai/agents-realtime@0.11.7'
+  - '@openai/agents@0.11.7'
+  - lucide-react@1.21.0

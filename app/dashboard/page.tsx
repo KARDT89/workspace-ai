@@ -11,6 +11,7 @@ const Dashboard = async () => {
 
   return (
     <div>Dashboard
+        {session.user.id}
         <ModeToggle/>
     </div>
   )
