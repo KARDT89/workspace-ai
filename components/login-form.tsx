@@ -48,7 +48,7 @@ export function LoginForm({
       if (error) throw new Error(error.message ?? "Unable to sign in.")
     },
     onSuccess: () => {
-      router.push("/dashboard")
+      router.push("/mail")
       router.refresh()
     },
   })
@@ -57,7 +57,7 @@ export function LoginForm({
     mutationFn: async (provider: "github" | "google") => {
       const { error } = await authClient.signIn.social({
         provider,
-        callbackURL: "/dashboard",
+        callbackURL: "/mail",
       })
       if (error) throw new Error(error.message ?? "Unable to sign in.")
     },

@@ -49,7 +49,7 @@ export function SignupForm({
       if (error) throw new Error(error.message ?? "Unable to create your account.")
     },
     onSuccess: () => {
-      router.push("/dashboard")
+      router.push("/connect")
       router.refresh()
     },
   })

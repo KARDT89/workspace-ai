@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { getCurrentSession } from "@/lib/betterauth/session";
 
 export const metadata: Metadata = {
   title: "Corsair Hub — Email built the way you'd build it",
@@ -273,7 +275,9 @@ function AppPreview() {
 
 // ─── main ─────────────────────────────────────────────────────────────────────
 
-export default function Home() {
+export default async function Home() {
+  const session = await getCurrentSession();
+  if (session) redirect("/mail");
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
 

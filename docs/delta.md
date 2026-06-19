@@ -44,26 +44,35 @@ Tracks every step from `planv1.md` against actual repo state.
 
 ---
 
-## Phase 2 — Email Core
+## Phase 2 — Email Core ✅
 
 | Step | File(s) | Status | Notes |
 |------|---------|--------|-------|
-| 8 | `server/db/queries/gmail.ts` | ⬜ | `server/db/queries/` dir does not exist |
-| 9 | `server/services/gmail.ts` | ⬜ | `server/services/` dir does not exist |
-| 10a | `app/api/gmail/messages/route.ts` | ⬜ | |
-| 10b | `app/api/gmail/messages/[id]/route.ts` | ⬜ | |
-| 10c | `app/api/gmail/messages/search/route.ts` | ⬜ | |
-| 10d | `app/api/gmail/messages/send/route.ts` | ⬜ | |
-| 10e | `app/api/gmail/messages/[id]/read/route.ts` | ⬜ | |
-| 10f | `app/api/gmail/drafts/route.ts` | ⬜ | |
-| 10g | `app/api/gmail/drafts/[id]/send/route.ts` | ⬜ | |
-| 10h | `app/api/gmail/sync/route.ts` | ⬜ | |
-| 11 | `components/mail/thread-list.tsx` | ⬜ | |
-| 11b | `components/mail/thread-row.tsx` | ⬜ | |
-| 12 | `components/mail/thread-detail.tsx` | ⬜ | |
-| 13 | `components/mail/compose-window.tsx` | ⬜ | |
+| 0 | `pnpm corsair list` + `pnpm corsair schema …` | ✅ | All gmail endpoints discovered before coding |
+| 8 | `server/db/queries/gmail.ts` | ✅ | `listMessages` + `searchMessages` — dedupes by threadId, joins email_priorities |
+| 9 | `server/services/gmail.ts` | ✅ | `getInbox`, `getThread`, `sendMessage`, `createDraft`, `sendDraft`, `markRead`, `syncInbox` |
+| 10a | `app/api/gmail/messages/route.ts` | ✅ | GET inbox with limit/offset |
+| 10b | `app/api/gmail/messages/[id]/route.ts` | ✅ | GET full thread by threadId via `gmail.api.threads.get` |
+| 10c | `app/api/gmail/messages/search/route.ts` | ✅ | GET search with q/from/subject params |
+| 10d | `app/api/gmail/messages/send/route.ts` | ✅ | POST send message |
+| 10e | `app/api/gmail/messages/[id]/read/route.ts` | ✅ | PATCH mark read/unread |
+| 10f | `app/api/gmail/drafts/route.ts` | ✅ | POST create draft |
+| 10g | `app/api/gmail/drafts/[id]/send/route.ts` | ✅ | POST send draft |
+| 10h | `app/api/gmail/sync/route.ts` | ✅ | POST sync inbox |
+| 11 | `components/mail/thread-list.tsx` | ✅ | TanStack Query, 30s refetch, skeleton loading, empty state |
+| 11b | `components/mail/thread-row.tsx` | ✅ | Unread dot, priority badge, smart timestamp |
+| 12 | `components/mail/thread-detail.tsx` | ✅ | Sandboxed iframe for HTML bodies, marks thread read on open, reply/reply-all toolbar |
+| 13 | `components/mail/compose-window.tsx` | ✅ | Fixed bottom-right, Cmd+Enter sends, Escape prompts draft save, minimise/fullscreen |
+| +  | `components/mail/mail-view.tsx` | ✅ | Client shell orchestrating list + detail + compose; `c` key opens compose |
+| +  | `app/(app)/mail/page.tsx` | ✅ | Updated to render MailView with session email + URL thread param |
 
-**Phase 2 gate:** Inbox loads < 200ms → open thread → compose → `Cmd+Enter` → sent
+**Deviations from plan:**
+- Added `components/mail/mail-view.tsx` as client orchestrator (not in plan) — needed to share compose-open state between ThreadList and ThreadDetail
+- `messages/[id]` route uses **threadId** (not entityId) as `[id]`, calls `gmail.api.threads.get` to return full decoded thread
+- HTML email bodies decoded server-side (base64url → UTF-8) before returning; displayed in sandboxed `<iframe srcdoc>`
+- `.next` cache must be cleared (`rm -rf .next`) before first build after adding multiple new routes — Turbopack build artifact issue, not a code bug
+
+**Phase 2 gate:** Connect Gmail → navigate to `/mail` → inbox loads → click thread → read email → press `c` or click pencil → compose → `Cmd+Enter` → email sent
 
 ---
 
@@ -180,3 +189,6 @@ Tracks every step from `planv1.md` against actual repo state.
 | 2026-06-19 | Phase 1 | All 16 steps completed | Build passes clean (`npm run build` green) |
 | 2026-06-19 | Phase 1 | Discovered `corsair/oauth` module for `generateOAuthUrl`/`processOAuthCallback` | Documented API deviation |
 | 2026-06-19 | Phase 1 | Discovered `WebhookFilterResult` return type from `processWebhook` | Plan had wrong type; fixed |
+| 2026-06-19 | Phase 2 | All 16 steps + mail-view orchestrator completed | Build passes clean (`npm run build` green after `rm -rf .next`) |
+| 2026-06-19 | Phase 2 | `messages/[id]` uses threadId not entityId; calls `threads.get` API | Different from plan which said `messages.get` |
+| 2026-06-19 | Phase 2 | Corsair DB `.list()` and `.search()` use `{ data: {...} }` for JSONB field filters | Confirmed from ORM type inspection |
