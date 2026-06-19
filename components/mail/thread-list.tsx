@@ -161,8 +161,15 @@ export function ThreadList({ selectedThreadId, onSelectThread, onCompose }: Prop
       }
       return fetch("/api/gmail/messages").then((r) => r.json());
     },
-    refetchInterval: isSearching ? undefined : 30_000,
+    refetchInterval: isSearching ? undefined : 60_000,
   });
+
+  // SSE — server pushes "inbox:updated" when a new email arrives via webhook
+  useEffect(() => {
+    const es = new EventSource("/api/gmail/events");
+    es.onmessage = () => qc.invalidateQueries({ queryKey: ["inbox"] });
+    return () => es.close();
+  }, [qc]);
 
   // Backfill priorities for messages that have never been classified
   useEffect(() => {

@@ -4,7 +4,9 @@ import { db } from "@/server/db";
 import { user } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { listMessages } from "@/server/db/queries/gmail";
+import { syncInbox } from "@/server/services/gmail";
 import { classifyEmailPriority } from "@/server/services/ai";
+import { notifyUser } from "@/lib/sse";
 
 export async function POST(req: Request) {
   const rawHeaders = Object.fromEntries(req.headers);
@@ -14,7 +16,6 @@ export async function POST(req: Request) {
 
   if (!result.plugin) return new Response(null, { status: 404 });
 
-  // Fire-and-forget prioritization for new Gmail messages
   if (result.plugin === "gmail") {
     triggerPrioritizationFromWebhook(body).catch(() => null);
   }
@@ -31,10 +32,7 @@ export async function POST(req: Request) {
   return new Response(null, { status: 200, headers });
 }
 
-async function triggerPrioritizationFromWebhook(
-  body: unknown
-): Promise<void> {
-  // Gmail Pub/Sub body: { message: { data: base64({"emailAddress":"...","historyId":"..."}) } }
+async function triggerPrioritizationFromWebhook(body: unknown): Promise<void> {
   const pubsub = body as { message?: { data?: string } };
   const encodedData = pubsub?.message?.data;
   if (!encodedData) return;
@@ -58,9 +56,16 @@ async function triggerPrioritizationFromWebhook(
   if (!users.length) return;
 
   const userId = users[0].id;
+
+  // Sync from Gmail API → guarantees new message is in corsair_entities
+  await syncInbox(userId);
+
+  // Push SSE event so the browser refetches immediately
+  notifyUser(userId);
+
+  // Classify priorities for any unprocessed messages
   const messages = await listMessages(userId, { limit: 10 });
   const unprioritized = messages.filter((m) => !m.priority);
-
   for (const m of unprioritized) {
     await classifyEmailPriority(userId, {
       messageEntityId: m.entityId,
