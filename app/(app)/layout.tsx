@@ -3,7 +3,9 @@ import { getCurrentSession } from "@/lib/betterauth/session";
 import { db } from "@/server/db";
 import { corsairAccounts } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import { AppNav } from "@/components/app-nav";
+import { NavRail } from "@/components/layout/nav-rail";
+import { StatusBar } from "@/components/layout/status-bar";
+import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 
 export default async function AppLayout({
   children,
@@ -20,10 +22,29 @@ export default async function AppLayout({
 
   if (accounts.length === 0) redirect("/connect");
 
+  const user = {
+    name: session.user.name,
+    email: session.user.email,
+  };
+
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <AppNav />
-      <div className="flex flex-1 overflow-hidden">{children}</div>
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
+      {/* Main area: nav rail + page content */}
+      <div className="flex min-h-0 flex-1">
+        {/* Desktop nav rail */}
+        <NavRail user={user} className="hidden lg:flex" />
+
+        {/* Page content fills remaining space */}
+        <div className="flex min-w-0 flex-1 overflow-hidden">
+          {children}
+        </div>
+      </div>
+
+      {/* VS Code-style status bar — desktop only */}
+      <StatusBar className="hidden lg:flex" />
+
+      {/* Bottom tab bar — mobile only */}
+      <MobileTabBar className="flex lg:hidden" />
     </div>
   );
 }
