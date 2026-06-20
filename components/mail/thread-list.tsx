@@ -183,7 +183,7 @@ export function ThreadList({ activeFolder, selectedThreadId, onSelectThread, onC
   });
 
   return (
-    <div className="flex h-full w-[22rem] shrink-0 flex-col border-r border-border xl:w-[25rem]">
+    <div className="flex h-full w-88 shrink-0 flex-col border-r border-border xl:w-100">
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between px-4 pb-1 pt-3">
         <div className="flex items-center gap-2">
