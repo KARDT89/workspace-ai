@@ -50,7 +50,7 @@ export function EventBlock({ event, top, height, col, total, isSelected, onClick
       <PopoverTrigger asChild>
         <button
           className={cn(
-            "absolute rounded px-1.5 py-0.5 text-left text-white overflow-hidden cursor-pointer hover:brightness-90 transition-[filter]",
+            "absolute cursor-pointer overflow-hidden rounded-md border border-white/15 px-1.5 py-1 text-left text-white shadow-sm transition-[filter] hover:brightness-95",
             color,
             isSelected && "ring-2 ring-white ring-offset-1"
           )}

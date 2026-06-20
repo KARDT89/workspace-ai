@@ -15,10 +15,11 @@ type ReplyContext = {
 
 type Props = {
   initialThreadId?: string;
+  initialFolder: "inbox" | "sent" | "drafts";
   userEmail: string;
 };
 
-export function MailView({ initialThreadId, userEmail }: Props) {
+export function MailView({ initialThreadId, initialFolder, userEmail }: Props) {
   const router = useRouter();
   const [composeOpen, setComposeOpen] = useState(false);
   const [replyContext, setReplyContext] = useState<ReplyContext | undefined>();
@@ -32,9 +33,13 @@ export function MailView({ initialThreadId, userEmail }: Props) {
   const selectThread = useCallback(
     (threadId: string) => {
       setSelectedThreadId(threadId);
-      router.push(`/mail?thread=${threadId}`, { scroll: false });
+      const params = new URLSearchParams({
+        folder: initialFolder,
+        thread: threadId,
+      });
+      router.push(`/mail?${params}`, { scroll: false });
     },
-    [router]
+    [initialFolder, router]
   );
 
   const openCompose = useCallback(() => {
@@ -66,8 +71,10 @@ export function MailView({ initialThreadId, userEmail }: Props) {
   }, [openCompose]);
 
   return (
-    <div className="flex flex-1 overflow-hidden relative">
+    <div className="relative flex min-w-0 flex-1 overflow-hidden bg-muted/20 p-2 md:p-3">
+      <div className="flex min-w-0 flex-1 overflow-hidden rounded-xl border bg-background shadow-sm">
       <ThreadList
+        activeFolder={initialFolder}
         selectedThreadId={selectedThreadId}
         onSelectThread={selectThread}
         onCompose={openCompose}
@@ -78,6 +85,7 @@ export function MailView({ initialThreadId, userEmail }: Props) {
         userEmail={userEmail}
         onReply={openReply}
       />
+      </div>
 
       {composeOpen && (
         <ComposeWindow

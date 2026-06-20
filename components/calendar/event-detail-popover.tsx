@@ -1,4 +1,7 @@
 import { Calendar, MapPin, Users, Video } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import type { CalendarEvent } from "@/server/services/calendar";
 
 function formatDateTime(iso: string, allDay: boolean): string {
@@ -17,8 +20,13 @@ function formatDateTime(iso: string, allDay: boolean): string {
 
 export function EventDetailPopover({ event }: { event: CalendarEvent }) {
   return (
-    <div className="p-4 space-y-3">
-      <h3 className="font-semibold text-base leading-tight">{event.title}</h3>
+    <div className="space-y-3 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="text-base font-semibold leading-tight">{event.title}</h3>
+        {event.allDay && <Badge variant="secondary">All day</Badge>}
+      </div>
+
+      <Separator />
 
       <div className="flex items-start gap-2 text-sm text-muted-foreground">
         <Calendar className="h-4 w-4 mt-0.5 shrink-0" />
@@ -40,14 +48,11 @@ export function EventDetailPopover({ event }: { event: CalendarEvent }) {
       {event.hangoutLink && (
         <div className="flex items-center gap-2 text-sm">
           <Video className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <a
-            href={event.hangoutLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline"
-          >
-            Join Google Meet
-          </a>
+          <Button variant="link" className="h-auto p-0" asChild>
+            <a href={event.hangoutLink} target="_blank" rel="noopener noreferrer">
+              Join Google Meet
+            </a>
+          </Button>
         </div>
       )}
 

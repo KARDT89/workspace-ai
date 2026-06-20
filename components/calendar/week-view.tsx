@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EventBlock } from "./event-block";
 import { CreateEventModal } from "./create-event-modal";
@@ -153,24 +154,31 @@ export function WeekView() {
   });
 
   return (
-    <div className="flex flex-col h-full overflow-hidden select-none">
+    <div className="flex min-w-0 flex-1 overflow-hidden bg-muted/20 p-2 md:p-3">
+      <div className="flex min-w-0 flex-1 select-none flex-col overflow-hidden rounded-xl border bg-background shadow-sm">
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b shrink-0">
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={prevWeek}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm font-medium w-40 text-center">{monthLabel}</span>
-          <Button variant="ghost" size="icon" onClick={nextWeek}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <CalendarDays className="size-5" />
+          </div>
+          <div>
+            <p className="text-base font-semibold leading-none">{monthLabel}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Week view</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={goToday}>
-            Today
-          </Button>
+          <ButtonGroup>
+            <Button variant="outline" size="icon-sm" onClick={prevWeek} aria-label="Previous week">
+              <ChevronLeft />
+            </Button>
+            <Button variant="outline" size="sm" onClick={goToday}>Today</Button>
+            <Button variant="outline" size="icon-sm" onClick={nextWeek} aria-label="Next week">
+              <ChevronRight />
+            </Button>
+          </ButtonGroup>
           <Button size="sm" onClick={() => setShowCreate(true)}>
-            <Plus className="h-3.5 w-3.5 mr-1" />
+            <Plus />
             New Event
           </Button>
         </div>
@@ -183,7 +191,13 @@ export function WeekView() {
       >
         <div />
         {days.map((d, i) => (
-          <div key={i} className="flex flex-col items-center py-1.5 border-l first:border-l-0">
+          <div
+            key={i}
+            className={cn(
+              "flex flex-col items-center border-l py-2 first:border-l-0",
+              isToday(d) && "bg-primary/5",
+            )}
+          >
             <span className="text-[11px] text-muted-foreground uppercase tracking-wide">
               {DAY_LABELS[i]}
             </span>
@@ -226,7 +240,7 @@ export function WeekView() {
       )}
 
       {/* Scrollable time grid */}
-      <div className="flex-1 overflow-y-auto" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto bg-background" ref={scrollRef}>
         <div
           className="grid"
           style={{
@@ -255,7 +269,7 @@ export function WeekView() {
             return (
               <div
                 key={di}
-                className="relative border-l"
+                className={cn("relative border-l", isToday(d) && "bg-primary/[0.025]")}
                 style={{ height: `${24 * HOUR_HEIGHT}px` }}
                 onClick={() => setSelectedEventId(null)}
               >
@@ -305,6 +319,7 @@ export function WeekView() {
         onClose={() => setShowCreate(false)}
         defaultDate={weekStart}
       />
+      </div>
     </div>
   );
 }

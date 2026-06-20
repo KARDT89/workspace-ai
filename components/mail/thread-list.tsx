@@ -3,64 +3,21 @@
 import { useRef, useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { motion } from "framer-motion";
-import { PencilSimple, Mailbox } from "@phosphor-icons/react";
+import { Mailbox, RotateCw, SquarePen } from "lucide-react";
 import { ThreadRow } from "./thread-row";
 import { SearchBar, type SearchFilters } from "./search-bar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 import type { InboxMessage } from "@/server/db/queries/gmail";
 
-// ── Tab bar ────────────────────────────────────────────────────────────────────
+type Folder = "inbox" | "sent" | "drafts";
 
-const TABS = [
-  { id: "inbox", label: "Inbox" },
-  { id: "sent", label: "Sent" },
-  { id: "drafts", label: "Drafts" },
-] as const;
-
-type TabId = (typeof TABS)[number]["id"];
-
-function TabBar({
-  active,
-  onChange,
-  unreadCount,
-}: {
-  active: TabId;
-  onChange: (tab: TabId) => void;
-  unreadCount: number;
-}) {
-  return (
-    <div className="flex shrink-0 border-b border-border">
-      {TABS.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => onChange(tab.id)}
-          className={cn(
-            "relative flex-1 py-2 text-xs font-medium transition-colors",
-            active === tab.id
-              ? "text-foreground"
-              : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          {tab.label}
-          {tab.id === "inbox" && unreadCount > 0 && (
-            <span className="ml-1 rounded-full bg-primary/20 px-1.5 text-[10px] font-semibold text-primary">
-              {unreadCount}
-            </span>
-          )}
-          {active === tab.id && (
-            <motion.div
-              layoutId="tab-indicator"
-              className="absolute inset-x-4 bottom-0 h-0.5 rounded-full bg-primary"
-              transition={{ type: "spring", stiffness: 500, damping: 40 }}
-            />
-          )}
-        </button>
-      ))}
-    </div>
-  );
-}
+const FOLDER_TITLES: Record<Folder, string> = {
+  inbox: "Inbox",
+  sent: "Sent",
+  drafts: "Drafts",
+};
 
 // ── Skeleton loader ────────────────────────────────────────────────────────────
 
@@ -132,31 +89,31 @@ function EmptyState({
 // ── ThreadList ─────────────────────────────────────────────────────────────────
 
 type Props = {
+  activeFolder: Folder;
   selectedThreadId?: string;
   onSelectThread: (threadId: string) => void;
   onCompose: () => void;
 };
 
-export function ThreadList({ selectedThreadId, onSelectThread, onCompose }: Props) {
+export function ThreadList({ activeFolder, selectedThreadId, onSelectThread, onCompose }: Props) {
   const parentRef = useRef<HTMLDivElement>(null);
   const backfillFired = useRef(false);
   const qc = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState<TabId>("inbox");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
 
   const isSearching =
     searchQuery.trim().length > 0 || Object.keys(searchFilters).length > 0;
 
-  const FETCH_URL: Record<TabId, string> = {
+  const FETCH_URL: Record<Folder, string> = {
     inbox: "/api/gmail/messages",
     sent: "/api/gmail/sent",
     drafts: "/api/gmail/drafts/list",
   };
 
   const { data: rawMessages = [], isLoading } = useQuery<InboxMessage[]>({
-    queryKey: isSearching ? ["inbox-search", searchQuery, searchFilters] : [activeTab],
+    queryKey: isSearching ? ["inbox-search", searchQuery, searchFilters] : [activeFolder],
     queryFn: () => {
       if (isSearching) {
         const params = new URLSearchParams();
@@ -165,7 +122,7 @@ export function ThreadList({ selectedThreadId, onSelectThread, onCompose }: Prop
         if (searchFilters.subject) params.set("subject", searchFilters.subject);
         return fetch(`/api/gmail/messages/search?${params}`).then((r) => r.json());
       }
-      return fetch(FETCH_URL[activeTab]).then((r) => r.json());
+      return fetch(FETCH_URL[activeFolder]).then((r) => r.json());
     },
   });
 
@@ -212,6 +169,11 @@ export function ThreadList({ selectedThreadId, onSelectThread, onCompose }: Prop
     setSearchFilters(filters);
   }, []);
 
+  useEffect(() => {
+    setSearchQuery("");
+    setSearchFilters({});
+  }, [activeFolder]);
+
   // Virtualizer — 72px fixed row height
   const rowVirtualizer = useVirtualizer({
     count: displayMessages.length,
@@ -221,35 +183,38 @@ export function ThreadList({ selectedThreadId, onSelectThread, onCompose }: Prop
   });
 
   return (
-    <div className="flex h-full w-80 shrink-0 flex-col border-r border-border">
+    <div className="flex h-full w-[22rem] shrink-0 flex-col border-r border-border xl:w-[25rem]">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between px-4 py-2.5">
-        <h2 className="text-sm font-semibold">Mail</h2>
-        <button
-          onClick={onCompose}
-          title="Compose (c)"
-          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        >
-          <PencilSimple size={16} />
-        </button>
+      <div className="flex shrink-0 items-center justify-between px-4 pb-1 pt-3">
+        <div className="flex items-center gap-2">
+          <h2 className="text-base font-semibold">{FOLDER_TITLES[activeFolder]}</h2>
+          {activeFolder === "inbox" && unreadCount > 0 && (
+            <Badge variant="secondary" className="rounded-full px-2 text-[10px]">
+              {unreadCount} unread
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            title="Refresh"
+            onClick={() => qc.invalidateQueries({ queryKey: [activeFolder] })}
+          >
+            <RotateCw />
+          </Button>
+          <Button size="sm" className="gap-1.5" onClick={onCompose} title="Compose (c)">
+            <SquarePen />
+            Compose
+          </Button>
+        </div>
       </div>
 
       {/* Search bar */}
-      <SearchBar onSearch={handleSearch} />
-
-      {/* Tab bar */}
-      <TabBar
-        active={activeTab}
-        onChange={(tab) => {
-          setActiveTab(tab);
-          setSearchQuery("");
-          setSearchFilters({});
-        }}
-        unreadCount={unreadCount}
-      />
+      <SearchBar key={activeFolder} onSearch={handleSearch} />
 
       {/* Thread list */}
-      <div ref={parentRef} className="flex-1 overflow-y-auto">
+      <div ref={parentRef} className="mt-1 flex-1 overflow-y-auto border-t">
         {isLoading ? (
           <SkeletonRows />
         ) : displayMessages.length === 0 ? (

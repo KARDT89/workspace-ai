@@ -2,6 +2,8 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 import { MagnifyingGlass, X } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 export interface SearchFilters {
@@ -86,7 +88,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
         )}
       >
         <MagnifyingGlass size={14} className="shrink-0 text-muted-foreground" />
-        <input
+        <Input
           ref={inputRef}
           type="text"
           value={value}
@@ -94,35 +96,36 @@ export function SearchBar({ onSearch }: SearchBarProps) {
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder="Search mail…"
-          className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
+          className="h-auto flex-1 border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
         />
         {value && (
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
             onMouseDown={(e) => e.preventDefault()}
             onClick={clear}
-            className="text-muted-foreground transition-colors hover:text-foreground"
+            className="text-muted-foreground"
           >
             <X size={13} />
-          </button>
+          </Button>
         )}
       </div>
 
       {showChips && (
         <div className="mt-1.5 flex gap-1.5">
           {CHIPS.map(({ key, label }) => (
-            <button
+            <Button
+              type="button"
+              size="xs"
+              variant={activeChips.has(key) ? "secondary" : "outline"}
               key={key}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => toggleChip(key)}
-              className={cn(
-                "rounded px-2 py-0.5 text-[11px] font-medium transition-colors",
-                activeChips.has(key)
-                  ? "border border-primary/30 bg-primary/20 text-primary"
-                  : "border border-border bg-muted text-muted-foreground hover:text-foreground",
-              )}
+              className={cn("h-6 rounded-full px-2 text-[11px]", activeChips.has(key) && "text-primary")}
             >
               {label}
-            </button>
+            </Button>
           ))}
         </div>
       )}
